@@ -23,11 +23,11 @@ export const DEFAULT_CATEGORIES = [
 
 // A ordem importa: a primeira regra que bater vence.
 const BUILTIN = [
-  [IGNORAR, 'pagamento de fatura|pagamento fatura|pgto fatura|pag fatura|pagamento recebido|transferencia entre contas|aplicacao|resgate|rdb|cdb'],
-  ['Dívidas', 'emprestimo|parcela emprestimo|acordo|financiamento|consignado|juros|iof|serasa|renegociacao'],
+  [IGNORAR, 'valor adicionado na conta por cartao|transferencia entre contas proprias|pagamento de fatura|pagamento fatura|pgto fatura|pag fatura|pagamento recebido|transferencia entre contas|aplicacao|resgate|rdb|cdb'],
+  ['Dívidas', 'multa de atraso|juros de atraso|juros de divida|juros limite|juros excesso|iof de atraso|iof complementar|emprestimo|parcela emprestimo|acordo|financiamento|consignado|juros|iof|serasa|renegociacao'],
   ['Salário', 'salario|pagamento recebido salario|folha|adiantamento salarial|pro labore|freela|freelance|rendimento'],
   ['Compras', 'shopee|mercado livre|mercadolivre|mercadopago|amazon|magalu|magazine luiza|americanas|shein|aliexpress|casas bahia|renner|riachuelo|c&a|centauro|netshoes|kabum|loja'],
-  ['Mercado', 'mercado|supermercado|supermerc|atacadao|atacado|assai|carrefour|pao de acucar|extra|hortifruti|sacolao|acougue'],
+  ['Mercado', 'mercadinho|mercearia|minimercado|minimercado|emporio|adega|mercado|supermercado|supermerc|atacadao|atacado|assai|carrefour|pao de acucar|extra|hortifruti|sacolao|acougue'],
   ['Alimentação', 'ifood|restaurante|lanchonete|lanche|padaria|pizza|pizzaria|burger|hamburguer|mc donalds|mcdonalds|bk|burger king|subway|almoco|jantar|cafe|cafeteria|rappi|acai|sorvete|marmita|bar e restaurante'],
   ['Transporte', 'uber|99|99app|99pop|cabify|gasolina|combustivel|posto|shell|ipiranga|petrobras|br mania|onibus|metro|bilhete unico|estacionamento|pedagio|sem parar|veloe|conectcar|oficina|mecanico'],
   ['Moradia', 'aluguel|condominio|iptu|imobiliaria'],

@@ -1,5 +1,5 @@
 // Service worker: deixa o OFI abrir sem internet.
-const CACHE = 'ofi-v9';
+const CACHE = 'ofi-v10';
 const SHELL = ['./', 'index.html', 'styles.css', 'manifest.json', 'icons/favicon.png', 'icons/icon-192.png', 'img/ofi-avatar.png', 'img/ofi-feliz.png', 'img/ofi-calmo.png', 'img/ofi-preocupado.png', 'img/ofi-festa.png',
   'js/app.js', 'js/util.js', 'js/rapido.js', 'js/importar.js', 'js/dividas.js', 'js/categorias.js', 'js/armazenamento.js', 'js/mascote.js', 'js/icones.js'];
 
