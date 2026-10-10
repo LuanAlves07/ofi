@@ -25,6 +25,10 @@ Organização financeira simples e sóbria, para quem não quer planilha. Gráti
 Dentro do app: **Mais → Nuvem**. Os dados ficam num repositório **privado** seu no GitHub. O passo a passo aparece lá.
 Sem a nuvem, os dados ficam só no aparelho. Use **Mais → Backup** de vez em quando.
 
+## Banco automático (opcional, grátis)
+Um robô do GitHub Actions busca os lançamentos das suas contas pelo Open Finance (Meu Pluggy) duas vezes por dia e grava num repositório **privado** `ofi-dados`. O app lê esse arquivo pela **Nuvem**, categoriza e evita duplicar o que você já lançou.
+O robô e a configuração ficam no repositório privado (`robo/` e `.github/workflows/sync-bancos.yml`), com as credenciais em *Secrets*. O token do app precisa de acesso **Contents: leitura e escrita** só a esse repositório.
+
 ## Personalizar
 - **Nome do app:** `APP_NAME` em `js/app.js` + `manifest.json` + `<title>`.
 - **Mascote:** imagens em `img/ofi-*.png` (humores: feliz, calmo, preocupado, festa); código em `js/mascote.js`.

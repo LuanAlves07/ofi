@@ -6,6 +6,7 @@ import { simulate, budgetForMonths } from './dividas.js';
 import { ruleKey } from './categorias.js';
 import { mascot, say, MASCOT_NAME } from './mascote.js';
 import { icon, catIcon } from './icones.js';
+import { lockState, bioSupported, setPin, removeLock, enableBio, disableBio, lockNow, askNewPin, askCurrentPin, initLock } from './bloqueio.js';
 import {
   emptyData, normalizeData, loadConfig, saveConfig, clearConfig, loadCache, saveCache,
   remoteLoad, remoteSave, merge,
@@ -474,10 +475,11 @@ const MORE = [
   ['cats', 'tag', 'Categorias', 'limites por mês'],
   ['install', 'phone', 'Instalar app', 'ícone na tela'],
   ['sync', 'cloud', 'Nuvem', 'PC + celular juntos'],
+  ['lock', 'shield', 'Bloqueio', 'PIN e biometria'],
   ['backup', 'shield', 'Backup', 'baixar ou restaurar'],
 ];
 function viewMore() {
-  if (S.sub) return `<button class="back" data-act="sub-back">‹ Voltar</button>` + { fixas: subFixas, importar: subImport, cats: subCats, install: subInstall, sync: subSync, backup: subBackup }[S.sub]();
+  if (S.sub) return `<button class="back" data-act="sub-back">‹ Voltar</button>` + { fixas: subFixas, importar: subImport, cats: subCats, install: subInstall, sync: subSync, backup: subBackup, lock: subLock }[S.sub]();
   return `
     <div class="tiles">${MORE.map(([k, e, t, s]) => `<button class="tile" data-act="sub" data-k="${k}"><span class="e">${icon(e, 22)}</span><b>${t}</b><small>${s}</small></button>`).join('')}</div>
     <section class="card tap" data-act="tour-start">${say('feliz', `Esqueceu como funciona? Toca aqui que eu, o <b>${MASCOT_NAME}</b>, te mostro de novo.`, 56)}</section>
@@ -507,11 +509,23 @@ function subImport() {
       <input type="file" id="fileInput" accept=".csv,.ofx,.txt,text/csv" multiple hidden>
       <div class="muted">${icon('file', 36)}</div><b>Escolher arquivo</b><div class="muted small">OFX ou CSV</div>
     </label>
-    <details><summary>Onde baixo isso?</summary>
+    <details open><summary>Passo a passo</summary>
       <ol class="steps" style="margin-top:10px">
-        <li><b>Nubank:</b> app → Extrato (ou Fatura) → exportar</li>
-        <li><b>Outros bancos:</b> internet banking → Extrato → salvar como <b>OFX</b></li>
+        <li><b>Abra o banco</b> no app ou no site (pelo computador costuma ter mais opções).</li>
+        <li><b>Procure Extrato</b> (conta) ou <b>Fatura</b> (cartão) e escolha o período.</li>
+        <li><b>Exporte</b> em <b>OFX</b> ou <b>CSV</b>. Se aparecer PDF, não serve.</li>
+        <li><b>Volte aqui</b>, toque em <b>Escolher arquivo</b> e selecione o que baixou.</li>
+        <li><b>Confira a lista</b>, ajuste categorias e toque em <b>Importar</b>. O que já estava aqui vem desmarcado.</li>
       </ol>
+      <p class="muted small">Fatura de cartão: marque <b>fatura de cartão</b> na tela de conferência. O arquivo é lido no seu aparelho e não vai pra lugar nenhum.</p>
+    </details>
+    <details><summary>Cada banco</summary>
+      <ol class="steps" style="margin-top:10px">
+        <li><b>Nubank:</b> Extrato ou Fatura → exportar (CSV).</li>
+        <li><b>Itaú, Bradesco, Santander, Banco do Brasil, Caixa:</b> internet banking → Extrato → salvar ou exportar como OFX.</li>
+        <li><b>Inter, C6 e outros digitais:</b> Extrato → Exportar (OFX ou CSV).</li>
+      </ol>
+      <p class="muted small">Os menus mudam de tempos em tempos. Se não achar, procure por "exportar" ou "baixar" dentro do extrato.</p>
     </details>`;
   const sel = pv.items.filter((i) => i.include).length;
   return `
@@ -596,6 +610,21 @@ function subSync() {
         <li>Copiar e colar aqui</li>
       </ol>
     </details>`;
+}
+
+function subLock() {
+  const st = lockState();
+  const row = (act, t, s, label, cls = '') => `<div class="card" style="display:flex;align-items:center;gap:12px;justify-content:space-between"><div><b>${t}</b><div class="muted small">${s}</div></div><button class="btn sm ${cls}" data-act="${act}">${label}</button></div>`;
+  return `
+    <h2>Bloqueio</h2>
+    ${say('calmo', st.on ? 'O app pede o PIN quando você abre e depois de 30 segundos fora.' : 'Crie um PIN de 4 números pra ninguém abrir seus dados neste aparelho.', 56)}
+    ${st.on ? `
+      ${row('lock-bio', 'Biometria', S.bioOK === false ? 'Este aparelho não oferece' : 'Digital ou rosto, quando o aparelho permitir', st.bio ? 'Desligar' : 'Ligar')}
+      ${row('lock-now', 'Bloquear agora', 'Testa o PIN na hora', 'Bloquear')}
+      ${row('lock-change', 'Trocar PIN', 'Pede o atual antes', 'Trocar')}
+      ${row('lock-off', 'Desligar bloqueio', 'Pede o PIN', 'Desligar', 'danger')}`
+    : '<button class="btn primary big" data-act="lock-on">Criar PIN</button>'}
+    <p class="muted small">O PIN fica só neste aparelho. Não é uma conta: quem pegar o aparelho já desbloqueado ou apagar os dados do navegador contorna. Se esquecer o PIN, é preciso apagar os dados do app neste aparelho (a Nuvem, se estiver ligada, continua a salvo).</p>`;
 }
 
 function subBackup() {
@@ -1057,7 +1086,7 @@ function finishOnboarding() {
 // ======================================================================
 // Eventos
 // ======================================================================
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   if (S.tour) {
     const t = e.target.closest('[data-act]');
     if (t?.dataset.act === 'tour-end') return endTour();
@@ -1164,6 +1193,21 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'install': installEvt?.prompt(); installEvt?.userChoice.then(() => { installEvt = null; render(); }); break;
+    case 'lock-on': case 'lock-change': {
+      if (el.dataset.act === 'lock-change' && !(await askCurrentPin())) break;
+      const pin = await askNewPin(); if (!pin) break;
+      await setPin(pin);
+      if (await bioSupported() && !lockState().bio && await enableBio()) toast('PIN e biometria ligados');
+      else toast('PIN criado');
+      render(); break;
+    }
+    case 'lock-off': if (await askCurrentPin('Digite o PIN pra desligar')) { removeLock(); toast('Bloqueio desligado'); render(); } break;
+    case 'lock-bio':
+      if (lockState().bio) { disableBio(); toast('Biometria desligada'); }
+      else if (await enableBio()) toast('Biometria ligada');
+      else { S.bioOK = false; toast('Biometria indisponível aqui'); }
+      render(); break;
+    case 'lock-now': lockNow(); break;
     case 'export': exportBackup(); break;
     case 'disconnect':
       if (confirmTap(el, 'Toque de novo pra confirmar')) { clearConfig(); S.cfg = { mode: 'local' }; saveConfig(S.cfg); setStatus('local'); render(); }
@@ -1366,6 +1410,7 @@ if (!S.data.settings.onboarded && !hasData && !isGitHub()) S.onb = { step: 0, in
 setStatus(isGitHub() ? (S.dirty ? 'saving' : 'ok') : 'local');
 generateRecurring();
 render();
+initLock();
 if (isGitHub()) pull();
 if (new URLSearchParams(location.search).has('add') && !S.onb) openAdd();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
